@@ -29,8 +29,6 @@ app.use(express.urlencoded({ extended: true }));
 // Database connection
 connectDB();
 
-// ✅ NEW: Setup routes (MUST come before admin routes)
-app.use('/api/setup', require('./routes/setupRoutes'));
 
 // Existing routes
 app.use('/api/admin', require('./routes/adminRoutes'));
