@@ -1,10 +1,12 @@
 const mongoose = require('mongoose');
+const dns = require('dns');
+
+dns.setServers(['8.8.8.8', '8.8.4.4']);
 
 const connectDB = async () => {
   try {
     console.log('Attempting to connect to MongoDB...');
     
-    //  Clean connection without deprecated options
     const conn = await mongoose.connect(process.env.MONGODB_URI);
 
     console.log(`MongoDB Connected: ${conn.connection.host}`);
