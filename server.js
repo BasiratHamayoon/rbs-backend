@@ -17,6 +17,7 @@ const allowedOrigins = [
   process.env.CLIENT_URL
 ].filter(Boolean);
 
+// Security & CORS
 app.use(helmet());
 app.use(cors({
   origin: function (origin, callback) {
@@ -30,22 +31,36 @@ app.use(cors({
   credentials: true
 }));
 
+// Rate Limiter
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100
 });
 app.use(limiter);
 
+// Body Parsers
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// Connect Database
 connectDB();
 
-app.use('/api/admin', require('./routes/adminRoutes'));
-app.use('/api/projects', require('./routes/projectRoutes'));
-app.use('/api/enquiries', require('./routes/enquiryRoutes'));
-app.use('/api/quotes', require('./routes/quoteRoutes'));
+// Root Route (Fixes "Cannot GET /")
+app.get('/', (req, res) => {
+  res.status(200).json({
+    status: 'success',
+    message: 'RBS Backend API is up and running!',
+    endpoints: {
+      health: '/api/health',
+      admin: '/api/admin',
+      projects: '/api/projects',
+      enquiries: '/api/enquiries',
+      quotes: '/api/quotes'
+    }
+  });
+});
 
+// Health Check Route
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'success',
@@ -54,6 +69,13 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// API Routes
+app.use('/api/admin', require('./routes/adminRoutes'));
+app.use('/api/projects', require('./routes/projectRoutes'));
+app.use('/api/enquiries', require('./routes/enquiryRoutes'));
+app.use('/api/quotes', require('./routes/quoteRoutes'));
+
+// Error Handling Middleware
 app.use(require('./middleware/error'));
 
 const PORT = process.env.PORT || 5000;
