@@ -11,41 +11,41 @@ const app = express();
 const allowedOrigins = [
   'http://localhost:3000', 
   'http://localhost:3001', 
-  'http://localhost:3002',  
-  'https://yourdomain.com', 
-  'https://www.yourdomain.com',
+  'http://localhost:3002',
   process.env.CLIENT_URL
 ].filter(Boolean);
 
-// Security & CORS
 app.use(helmet());
 app.use(cors({
   origin: function (origin, callback) {
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
+    const isAllowed = 
+      allowedOrigins.includes(origin) ||
+      origin.endsWith('.vercel.app') ||
+      process.env.NODE_ENV !== 'production';
+
+    if (isAllowed) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
-// Rate Limiter
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100
 });
 app.use(limiter);
 
-// Body Parsers
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Connect Database
 connectDB();
 
-// Root Route (Fixes "Cannot GET /")
 app.get('/', (req, res) => {
   res.status(200).json({
     status: 'success',
@@ -60,7 +60,6 @@ app.get('/', (req, res) => {
   });
 });
 
-// Health Check Route
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'success',
@@ -69,13 +68,11 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// API Routes
 app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/projects', require('./routes/projectRoutes'));
 app.use('/api/enquiries', require('./routes/enquiryRoutes'));
 app.use('/api/quotes', require('./routes/quoteRoutes'));
 
-// Error Handling Middleware
 app.use(require('./middleware/error'));
 
 const PORT = process.env.PORT || 5000;
