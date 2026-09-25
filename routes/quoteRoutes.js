@@ -1,13 +1,19 @@
 const express = require('express');
 const { protect, restrictTo } = require('../middleware/auth');
-const { createQuote, getAllQuotes } = require('../controllers/quoteController');
+const { validateQuote } = require('../middleware/validation');
+const {
+  createQuote, getAllQuotes, getQuote, updateQuote, deleteQuote
+} = require('../controllers/quoteController');
 
 const router = express.Router();
 
-// Public route - anyone can submit quote request
-router.post('/', createQuote);
+router.post('/', validateQuote, createQuote);
 
-// Protected routes (Admin only)
-router.get('/', protect, restrictTo('admin'), getAllQuotes);
+router.use(protect, restrictTo('admin', 'super-admin'));
+
+router.get('/', getAllQuotes);
+router.get('/:id', getQuote);
+router.patch('/:id', updateQuote);
+router.delete('/:id', deleteQuote);
 
 module.exports = router;

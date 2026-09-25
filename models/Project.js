@@ -2,41 +2,59 @@ const mongoose = require('mongoose');
 
 const projectSchema = new mongoose.Schema({
   title: {
-    type: String,
-    required: [true, 'Project title is required'],
-    trim: true,
-    maxlength: [100, 'Title cannot exceed 100 characters']
+    en: {
+      type: String,
+      required: [true, 'English title is required'],
+      trim: true,
+      maxlength: 100
+    },
+    ar: {
+      type: String,
+      required: [true, 'Arabic title is required'],
+      trim: true,
+      maxlength: 100
+    }
   },
   category: {
-    type: String,
-    required: [true, 'Project category is required'],
-    enum: ['Bathrooms', 'Kitchens', 'Stores', 'Restaurants', 'Buildings', 'Houses', 'Hospitals', 'Hotels']
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Category',
+    required: [true, 'Project category is required']
   },
   description: {
-    type: String,
-    required: [true, 'Project description is required'],
-    maxlength: [500, 'Description cannot exceed 500 characters']
+    en: {
+      type: String,
+      required: [true, 'English description is required'],
+      maxlength: 1000
+    },
+    ar: {
+      type: String,
+      required: [true, 'Arabic description is required'],
+      maxlength: 1000
+    }
   },
   shortDescription: {
-    type: String,
-    maxlength: [200, 'Short description cannot exceed 200 characters']
+    en: { type: String, maxlength: 300 },
+    ar: { type: String, maxlength: 300 }
   },
   images: [{
     url: String,
     public_id: String,
-    caption: String
+    caption: {
+      en: String,
+      ar: String
+    }
   }],
   duration: {
-    type: String,
-    required: true
+    en: { type: String, required: true },
+    ar: { type: String, required: true }
   },
   size: {
     type: String,
     required: true
   },
   location: {
-    type: String,
-    required: true
+    en: { type: String, required: true },
+    ar: { type: String, required: true }
   },
   client: {
     type: String,
@@ -47,7 +65,10 @@ const projectSchema = new mongoose.Schema({
     required: true
   },
   technologies: [String],
-  features: [String],
+  features: {
+    en: [String],
+    ar: [String]
+  },
   status: {
     type: String,
     enum: ['completed', 'ongoing', 'upcoming'],
@@ -61,7 +82,6 @@ const projectSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Index for better query performance
 projectSchema.index({ category: 1, createdAt: -1 });
 projectSchema.index({ featured: 1, createdAt: -1 });
 

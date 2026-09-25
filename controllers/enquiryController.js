@@ -4,8 +4,7 @@ const AppError = require('../utils/AppError');
 
 exports.getAllEnquiries = catchAsync(async (req, res, next) => {
   const { status, page = 1, limit = 10 } = req.query;
-  
-  let filter = {};
+  const filter = {};
   if (status) filter.status = status;
 
   const enquiries = await Enquiry.find(filter)
@@ -21,7 +20,7 @@ exports.getAllEnquiries = catchAsync(async (req, res, next) => {
     data: {
       enquiries,
       totalPages: Math.ceil(total / limit),
-      currentPage: page,
+      currentPage: parseInt(page),
       total
     }
   });
@@ -29,70 +28,47 @@ exports.getAllEnquiries = catchAsync(async (req, res, next) => {
 
 exports.getEnquiry = catchAsync(async (req, res, next) => {
   const enquiry = await Enquiry.findById(req.params.id);
+  if (!enquiry) return next(new AppError(req.t('enquiry.notFound'), 404));
 
-  if (!enquiry) {
-    return next(new AppError('No enquiry found with that ID', 404));
-  }
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      enquiry
-    }
-  });
+  res.status(200).json({ status: 'success', data: { enquiry } });
 });
 
 exports.createEnquiry = catchAsync(async (req, res, next) => {
   const enquiry = await Enquiry.create(req.body);
-
   res.status(201).json({
     status: 'success',
-    data: {
-      enquiry
-    }
+    message: req.t('enquiry.created'),
+    data: { enquiry }
   });
 });
 
 exports.updateEnquiry = catchAsync(async (req, res, next) => {
-  const enquiry = await Enquiry.findByIdAndUpdate(
-    req.params.id,
-    req.body,
-    { new: true, runValidators: true }
-  );
-
-  if (!enquiry) {
-    return next(new AppError('No enquiry found with that ID', 404));
-  }
+  const enquiry = await Enquiry.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true
+  });
+  if (!enquiry) return next(new AppError(req.t('enquiry.notFound'), 404));
 
   res.status(200).json({
     status: 'success',
-    data: {
-      enquiry
-    }
+    message: req.t('enquiry.updated'),
+    data: { enquiry }
   });
 });
 
 exports.deleteEnquiry = catchAsync(async (req, res, next) => {
   const enquiry = await Enquiry.findByIdAndDelete(req.params.id);
+  if (!enquiry) return next(new AppError(req.t('enquiry.notFound'), 404));
 
-  if (!enquiry) {
-    return next(new AppError('No enquiry found with that ID', 404));
-  }
-
-  res.status(204).json({
+  res.status(200).json({
     status: 'success',
-    data: null
+    message: req.t('enquiry.deleted')
   });
 });
 
 exports.getEnquiryStats = catchAsync(async (req, res, next) => {
   const stats = await Enquiry.aggregate([
-    {
-      $group: {
-        _id: '$status',
-        count: { $sum: 1 }
-      }
-    }
+    { $group: { _id: '$status', count: { $sum: 1 } } }
   ]);
 
   const total = await Enquiry.countDocuments();
@@ -100,10 +76,6 @@ exports.getEnquiryStats = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     status: 'success',
-    data: {
-      stats,
-      total,
-      newEnquiries
-    }
+    data: { stats, total, newEnquiries }
   });
 });

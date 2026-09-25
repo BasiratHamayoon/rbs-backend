@@ -1,6 +1,44 @@
 const Admin = require('../models/Admin');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/AppError');
+const { isStrongPassword } = require('../utils/passwordValidator');
+
+exports.setupFirstAdmin = catchAsync(async (req, res, next) => {
+  const adminCount = await Admin.countDocuments();
+  if (adminCount > 0) {
+    return next(new AppError('Setup already completed. You cannot create more admins this way.', 403));
+  }
+
+  const { username, email, password } = req.body;
+
+  if (!username || !email || !password) {
+    return next(new AppError('Please provide username, email, and password', 400));
+  }
+
+  if (!isStrongPassword(password)) {
+    return next(new AppError(req.t('validation.passwordWeak'), 400));
+  }
+
+  const newAdmin = await Admin.create({
+    username,
+    email: email.toLowerCase(),
+    password,
+    role: 'super-admin'
+  });
+
+  res.status(201).json({
+    status: 'success',
+    message: 'First admin registered successfully!',
+    data: {
+      admin: {
+        id: newAdmin._id,
+        username: newAdmin.username,
+        email: newAdmin.email,
+        role: newAdmin.role
+      }
+    }
+  });
+});
 
 exports.getAdminProfile = catchAsync(async (req, res, next) => {
   const admin = await Admin.findById(req.admin.id);
@@ -21,36 +59,29 @@ exports.getAdminProfile = catchAsync(async (req, res, next) => {
 
 exports.updateAdminProfile = catchAsync(async (req, res, next) => {
   const { username, email } = req.body;
-  
-  // Check if username or email already exists (excluding current admin)
+  const updateData = {};
+
   if (username) {
-    const existingAdmin = await Admin.findOne({ 
-      username, 
-      _id: { $ne: req.admin.id } 
-    });
-    if (existingAdmin) {
-      return next(new AppError('Username already exists', 400));
-    }
+    const existing = await Admin.findOne({ username, _id: { $ne: req.admin.id } });
+    if (existing) return next(new AppError(req.t('admin.usernameExists'), 400));
+    updateData.username = username;
   }
 
   if (email) {
-    const existingAdmin = await Admin.findOne({ 
-      email, 
-      _id: { $ne: req.admin.id } 
-    });
-    if (existingAdmin) {
-      return next(new AppError('Email already exists', 400));
-    }
+    const existing = await Admin.findOne({ email: email.toLowerCase(), _id: { $ne: req.admin.id } });
+    if (existing) return next(new AppError(req.t('admin.emailExists'), 400));
+    updateData.email = email.toLowerCase();
   }
-  
+
   const updatedAdmin = await Admin.findByIdAndUpdate(
     req.admin.id,
-    { username, email },
+    updateData,
     { new: true, runValidators: true }
   );
 
   res.status(200).json({
     status: 'success',
+    message: req.t('admin.profileUpdated'),
     data: {
       admin: {
         id: updatedAdmin._id,
@@ -64,43 +95,23 @@ exports.updateAdminProfile = catchAsync(async (req, res, next) => {
 });
 
 exports.changePassword = catchAsync(async (req, res, next) => {
-  const { currentPassword, newPassword, confirmPassword } = req.body;
+  const { currentPassword, newPassword } = req.body;
 
-  // 1) Check if all fields are provided
-  if (!currentPassword || !newPassword || !confirmPassword) {
-    return next(new AppError('Please provide current password, new password, and confirmation', 400));
-  }
-
-  // 2) Check if new passwords match
-  if (newPassword !== confirmPassword) {
-    return next(new AppError('New passwords do not match', 400));
-  }
-
-  // 3) Check if new password is different from current
   if (currentPassword === newPassword) {
-    return next(new AppError('New password must be different from current password', 400));
+    return next(new AppError(req.t('auth.sameOldPassword'), 400));
   }
 
-  // 4) Check if new password meets length requirement
-  if (newPassword.length < 8) {
-    return next(new AppError('Password must be at least 8 characters', 400));
-  }
-
-  // 5) Get admin with password
   const admin = await Admin.findById(req.admin.id).select('+password');
 
-  // 6) Check if current password is correct
   if (!(await admin.correctPassword(currentPassword, admin.password))) {
-    return next(new AppError('Current password is incorrect', 401));
+    return next(new AppError(req.t('auth.currentPasswordWrong'), 401));
   }
 
-  // 7) Update password
   admin.password = newPassword;
-  await admin.save(); // This will trigger the pre-save middleware to hash the password
+  await admin.save();
 
-  // 8) Send response
   res.status(200).json({
     status: 'success',
-    message: 'Password updated successfully'
+    message: req.t('auth.passwordChanged')
   });
 });

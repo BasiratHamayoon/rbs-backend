@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const validator = require('validator');
 
 const quoteSchema = new mongoose.Schema({
   name: {
@@ -10,7 +11,8 @@ const quoteSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Email is required'],
     lowercase: true,
-    trim: true
+    trim: true,
+    validate: [validator.isEmail, 'Please provide a valid email']
   },
   telephone: {
     type: String,
@@ -32,6 +34,11 @@ const quoteSchema = new mongoose.Schema({
   timeline: {
     type: String,
     enum: ['immediately', '1-3 months', '3-6 months', '6-12 months', 'flexible']
+  },
+  preferredLanguage: {
+    type: String,
+    enum: ['en', 'ar'],
+    default: 'en'
   },
   status: {
     type: String,

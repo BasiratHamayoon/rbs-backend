@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const validator = require('validator');
 
 const enquirySchema = new mongoose.Schema({
   name: {
@@ -10,7 +11,8 @@ const enquirySchema = new mongoose.Schema({
     type: String,
     required: [true, 'Email is required'],
     lowercase: true,
-    trim: true
+    trim: true,
+    validate: [validator.isEmail, 'Please provide a valid email']
   },
   telephone: {
     type: String,
@@ -33,6 +35,11 @@ const enquirySchema = new mongoose.Schema({
     type: String,
     enum: ['email', 'phone', 'write', 'do not'],
     default: 'email'
+  },
+  preferredLanguage: {
+    type: String,
+    enum: ['en', 'ar'],
+    default: 'en'
   },
   status: {
     type: String,

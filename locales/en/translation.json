@@ -1,0 +1,57 @@
+{
+    "auth": {
+      "loginSuccess": "Logged in successfully",
+      "logoutSuccess": "Logged out successfully",
+      "invalidCredentials": "Incorrect email or password",
+      "emailRequired": "Please provide email and password",
+      "notLoggedIn": "You are not logged in! Please log in to get access",
+      "tokenInvalid": "Invalid token. Please log in again",
+      "tokenExpired": "Your session has expired. Please log in again",
+      "noPermission": "You do not have permission to perform this action",
+      "adminNotExist": "The admin belonging to this token no longer exists",
+      "passwordChanged": "Password updated successfully",
+      "currentPasswordWrong": "Current password is incorrect",
+      "passwordsNotMatch": "Passwords do not match",
+      "sameOldPassword": "New password must be different from current password",
+      "resetTokenSent": "Password reset token sent to email",
+      "resetTokenInvalid": "Token is invalid or has expired",
+      "passwordResetSuccess": "Password reset successfully",
+      "emailNotFound": "There is no admin with that email address"
+    },
+    "validation": {
+      "passwordWeak": "Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number and one special character",
+      "emailInvalid": "Please provide a valid email address",
+      "fieldRequired": "{{field}} is required",
+      "invalidData": "Invalid input data"
+    },
+    "project": {
+      "created": "Project created successfully",
+      "updated": "Project updated successfully",
+      "deleted": "Project deleted successfully",
+      "notFound": "No project found with that ID",
+      "categoryCreated": "Category created successfully",
+      "categoryExists": "Category already exists",
+      "categoryNotFound": "Category not found",
+      "categoryDeleted": "Category deleted successfully"
+    },
+    "enquiry": {
+      "created": "Enquiry submitted successfully",
+      "updated": "Enquiry updated successfully",
+      "deleted": "Enquiry deleted successfully",
+      "notFound": "No enquiry found with that ID"
+    },
+    "quote": {
+      "created": "Quote request submitted successfully",
+      "notFound": "No quote found with that ID"
+    },
+    "admin": {
+      "profileUpdated": "Profile updated successfully",
+      "usernameExists": "Username already exists",
+      "emailExists": "Email already exists"
+    },
+    "general": {
+      "success": "Success",
+      "error": "Something went wrong",
+      "serverError": "Internal server error"
+    }
+  }
