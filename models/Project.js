@@ -15,6 +15,11 @@ const projectSchema = new mongoose.Schema({
       maxlength: 100
     }
   },
+  slug: {
+    type: String,
+    lowercase: true,
+    trim: true
+  },
   category: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Category',
@@ -24,17 +29,17 @@ const projectSchema = new mongoose.Schema({
     en: {
       type: String,
       required: [true, 'English description is required'],
-      maxlength: 1000
+      maxlength: 2000
     },
     ar: {
       type: String,
       required: [true, 'Arabic description is required'],
-      maxlength: 1000
+      maxlength: 2000
     }
   },
   shortDescription: {
-    en: { type: String, maxlength: 300 },
-    ar: { type: String, maxlength: 300 }
+    en: { type: String, maxlength: 500, default: '' },
+    ar: { type: String, maxlength: 500, default: '' }
   },
   images: [{
     url: String,
@@ -64,10 +69,13 @@ const projectSchema = new mongoose.Schema({
     type: Date,
     required: true
   },
-  technologies: [String],
+  technologies: {
+    type: [String],
+    default: []
+  },
   features: {
-    en: [String],
-    ar: [String]
+    en: { type: [String], default: [] },
+    ar: { type: [String], default: [] }
   },
   status: {
     type: String,
@@ -80,6 +88,19 @@ const projectSchema = new mongoose.Schema({
   }
 }, {
   timestamps: true
+});
+
+// Auto-generate a unique slug before validation
+projectSchema.pre('validate', function(next) {
+  if (this.title && this.title.en) {
+    const baseSlug = this.title.en
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+    this.slug = `${baseSlug}-${Date.now().toString().slice(-6)}`;
+  }
+  next();
 });
 
 projectSchema.index({ category: 1, createdAt: -1 });

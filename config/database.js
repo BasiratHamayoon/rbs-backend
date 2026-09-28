@@ -8,6 +8,19 @@ const connectDB = async () => {
     const conn = await mongoose.connect(process.env.MONGODB_URI);
     console.log(`MongoDB Connected: ${conn.connection.host}`);
     console.log(`Database: ${conn.connection.name}`);
+
+    // Auto-remove the stale slug_1 index if it exists in MongoDB
+    try {
+      const collection = conn.connection.collection('projects');
+      const indexes = await collection.indexes();
+      const hasStaleSlugIndex = indexes.some(idx => idx.name === 'slug_1');
+      if (hasStaleSlugIndex) {
+        await collection.dropIndex('slug_1');
+        console.log('✅ Successfully dropped stale slug_1 index from projects collection');
+      }
+    } catch (indexErr) {
+      // Index already dropped or collection is new
+    }
   } catch (error) {
     console.error('Database connection error:', error.message);
     process.exit(1);
